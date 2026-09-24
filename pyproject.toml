@@ -1,0 +1,27 @@
+[project]
+name = "customersupport"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "YACIINE 105", email = "mooml.intern@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.0",
+    "fastapi>=0.141.1",
+    "requests>=2.34.2",
+    "uvicorn>=0.53.0",
+]
+
+[project.scripts]
+customersupport = "customersupport:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+
+[tool.uv]
+package = false
+
