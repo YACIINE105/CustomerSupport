@@ -4,8 +4,29 @@ __pycache__/
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
-# Virtual environments
-.venv
+# Local environments and secrets
+.venv/
 .env
+.env.*
+!.env.example
+
+# Test/tool caches and coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Local planning and learning documents; README is public documentation
+*.md
+!README.md
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
