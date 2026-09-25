@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
 
 from src.core.config import get_settings
+from src.models.user import User  # noqa: F401
+from src.models.agent import Agent  # noqa: F401
 from src.models.message import Message  # noqa: F401 - register metadata
 from src.core.database import Base
 from src.models.customer import Customer  # noqa: F401 — registers the table

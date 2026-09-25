@@ -26,3 +26,15 @@ class MessageType(StrEnum):
     TEXT = "TEXT"
     AUDIO = "AUDIO"
     SYSTEM = "SYSTEM"
+
+
+class UserRole(StrEnum):
+    ADMIN = "ADMIN"
+    SUPPORT_HEAD = "SUPPORT_HEAD"
+    AGENT = "AGENT"
+
+
+class AgentStatus(StrEnum):
+    AVAILABLE = "AVAILABLE"
+    BUSY = "BUSY"
+    OFFLINE = "OFFLINE"

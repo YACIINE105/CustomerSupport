@@ -30,6 +30,8 @@ services:
         condition: service_healthy
 
   api:
+    env_file:
+      - ../.env
     build:
       context: ..
       dockerfile: docker/Dockerfile

@@ -7,7 +7,7 @@ from src.domain.enums import MessageSenderType, MessageType
 
 
 class MessageCreate(BaseModel):
-    sender_type: Literal[MessageSenderType.CUSTOMER] = MessageSenderType.CUSTOMER
+    sender_type: Literal[MessageSenderType.CUSTOMER, MessageSenderType.AGENT] = MessageSenderType.CUSTOMER
     sender_id: int = Field(gt=0)
     content: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=10000)]
     message_type: Literal[MessageType.TEXT] = MessageType.TEXT

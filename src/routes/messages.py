@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.controllers.message_controller import MessageController
 from src.core.database import get_db_session
+from src.core.dependencies import CurrentUser
+from src.repositories.agent_repository import AgentRepository
 from src.models.message import Message
 from src.repositories.conversation_repository import ConversationRepository
 from src.repositories.message_repository import MessageRepository
@@ -17,7 +19,7 @@ router = APIRouter(prefix="/conversations/{conversation_id}/messages", tags=["me
 def get_message_controller(
     session: Annotated[AsyncSession, Depends(get_db_session, scope="function")],
 ) -> MessageController:
-    return MessageController(MessageService(MessageRepository(session), ConversationRepository(session)))
+    return MessageController(MessageService(MessageRepository(session), ConversationRepository(session), AgentRepository(session)))
 
 
 ControllerDependency = Annotated[MessageController, Depends(get_message_controller)]
@@ -25,9 +27,9 @@ ControllerDependency = Annotated[MessageController, Depends(get_message_controll
 
 @router.post("", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
 async def create_message(
-    conversation_id: int, data: MessageCreate, controller: ControllerDependency,
+    conversation_id: int, data: MessageCreate, controller: ControllerDependency, actor: CurrentUser,
 ) -> Message:
-    return await controller.create(conversation_id, data)
+    return await controller.create(conversation_id, data, actor)
 
 
 @router.get("", response_model=list[MessageResponse])

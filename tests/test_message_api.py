@@ -63,7 +63,7 @@ async def test_timeline_orders_by_time_then_id_and_paginates(client, conversatio
 
 @pytest.mark.parametrize('changes', [
     {'content': ''}, {'content': ' \n\t '}, {'content': 'a' * 10001},
-    {'sender_id': 0}, {'sender_id': 999}, {'sender_type': 'AGENT'},
+    {'sender_id': 0}, {'sender_id': 999},
     {'sender_type': 'AI'}, {'sender_type': 'SYSTEM'}, {'message_type': 'AUDIO'},
     {'message_type': 'SYSTEM'}, {'metadata': []}, {'metadata': None},
     {'created_at': '2026-01-01T00:00:00Z'}, {'conversation_id': 999},

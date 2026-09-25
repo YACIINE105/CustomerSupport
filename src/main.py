@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from src.core.config import get_settings
 from src.core.database import engine
@@ -31,12 +33,20 @@ app = FastAPI(
 
 @app.exception_handler(ApplicationError)
 async def application_error_handler(_, exc: ApplicationError):
-    from fastapi.responses import JSONResponse
-
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail, "code": exc.code},
+        headers={"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None,
     )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(_, exc: RequestValidationError):
+    # Do not echo passwords or other submitted values in validation responses.
+    return JSONResponse(status_code=422, content={"detail": [
+        {"loc": error["loc"], "msg": error["msg"], "type": error["type"]}
+        for error in exc.errors()
+    ]})
 
 
 app.include_router(base_router)

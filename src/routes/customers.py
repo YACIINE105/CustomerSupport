@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.controllers.customer_controller import CustomerController
 from src.core.database import get_db_session
+from src.core.dependencies import ManagerUser
 from src.models.customer import Customer
 from src.repositories.customer_repository import CustomerRepository
 from src.schemas.customer import CustomerCreate, CustomerResponse, CustomerUpdate
@@ -69,6 +70,7 @@ async def update_customer(
 @router.delete("/{customer_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_customer(
     customer_id: int,
+    actor: ManagerUser,
     controller: ControllerDependency,
 ) -> Response:
     await controller.delete(customer_id)
