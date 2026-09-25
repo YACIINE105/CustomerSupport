@@ -51,3 +51,18 @@ class EscalationStatus(StrEnum):
     OPEN = "OPEN"
     ASSIGNED = "ASSIGNED"
     RESOLVED = "RESOLVED"
+
+
+class CallDirection(StrEnum):
+    INBOUND = "INBOUND"
+    OUTBOUND = "OUTBOUND"
+
+
+class CallStatus(StrEnum):
+    INITIATED = "INITIATED"
+    RINGING = "RINGING"
+    ANSWERED = "ANSWERED"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    MISSED = "MISSED"

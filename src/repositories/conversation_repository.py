@@ -43,3 +43,12 @@ class ConversationRepository:
         await self.session.flush()
         await self.session.refresh(conversation)
         return conversation
+
+
+    async def has_active_call(self, conversation_id: int) -> bool:
+        from src.models.call import Call
+        from src.domain.enums import CallStatus
+        return await self.session.scalar(select(Call.id).where(
+            Call.conversation_id == conversation_id,
+            Call.status.in_([CallStatus.INITIATED, CallStatus.RINGING, CallStatus.ANSWERED]),
+        )) is not None

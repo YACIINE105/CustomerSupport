@@ -395,7 +395,7 @@ Latest milestone verification:
 | User authentication and human support-agent profiles | Complete |
 | Conversation listing, assignment, and lifecycle | Complete |
 | Escalations | Complete |
-| Call records (no telephony integration) | Queued after escalations |
+| Call records (no telephony integration) | Complete |
 | Final authenticated workflow, PostgreSQL/migrations, Docker, errors, documentation | Queued after call records |
 | LLM, RAG, AI agents, and real voice integrations | Later |
 
@@ -442,3 +442,24 @@ assignment. Resolution records `resolved_at` and returns the conversation to
 IN_PROGRESS if assigned, otherwise OPEN. Repeating resolution is idempotent;
 resolved escalations cannot otherwise be edited. Migration `0006` enforces the
 single-active-escalation rule. Focused escalation/conversation tests: 20 passed.
+
+## Call records (no telephony)
+
+POST `/api/v1/calls` accepts `conversation_id`, direction INBOUND/OUTBOUND,
+optional `agent_id`, `phone_number`, `provider` (default manual), and
+`provider_call_id`. Only VOICE/PHONE conversations qualify, with at most one call
+per conversation. Managers or the conversation's assigned agent can write records.
+An explicit call agent must match an existing conversation assignment and must
+be active and AVAILABLE.
+
+GET `/api/v1/calls` filters by conversation, agent, status, and direction with
+pagination; GET `/api/v1/calls/{id}` retrieves one call. PATCH changes status or
+stores/clears an HTTP(S) recording URL and transcript. No URL is fetched and no
+phone call is placed. Server timestamps track INITIATED → RINGING → ANSWERED →
+COMPLETED. INITIATED may go directly to ANSWERED. INITIATED/RINGING may become
+FAILED or CANCELLED; RINGING may become MISSED; ANSWERED may become FAILED.
+Terminal states cannot be reopened. Repeating a status preserves its timestamps.
+Duration is whole seconds from answer to end (zero when never answered).
+Conversations cannot resolve or change assignee while a call is active.
+Migration `0007` adds call records and their constraints. Focused call/escalation/
+conversation tests: 25 passed.

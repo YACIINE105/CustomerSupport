@@ -88,6 +88,8 @@ class ConversationService:
         if conversation.status in {ConversationStatus.RESOLVED, ConversationStatus.CLOSED}:
             raise ConflictError("Cannot assign a resolved or closed conversation")
         await self.eligible_agent(agent_id)
+        if conversation.assigned_agent_id != agent_id and await self.conversation_repository.has_active_call(conversation.id):
+            raise ConflictError("Finish the active call before reassigning the conversation")
         conversation.assigned_agent_id = agent_id
         if conversation.status == ConversationStatus.OPEN:
             conversation.status = ConversationStatus.IN_PROGRESS
@@ -101,6 +103,8 @@ class ConversationService:
             return conversation
         if status not in TRANSITIONS[conversation.status]:
             raise ConflictError(f"Cannot move conversation from {conversation.status} to {status}")
+        if status == ConversationStatus.RESOLVED and await self.conversation_repository.has_active_call(conversation.id):
+            raise ConflictError("Finish the active call before resolving the conversation")
         conversation.status = status
         if status == ConversationStatus.RESOLVED:
             conversation.ended_at = datetime.now(timezone.utc)

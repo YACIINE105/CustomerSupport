@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
 
 from src.core.config import get_settings
+from src.models.call import Call  # noqa: F401
 from src.models.escalation import Escalation  # noqa: F401
 from src.models.user import User  # noqa: F401
 from src.models.agent import Agent  # noqa: F401
