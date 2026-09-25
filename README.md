@@ -394,7 +394,7 @@ Latest milestone verification:
 | Customer/agent text messages and conversation history | Complete |
 | User authentication and human support-agent profiles | Complete |
 | Conversation listing, assignment, and lifecycle | Complete |
-| Escalations | Queued after conversation management |
+| Escalations | Complete |
 | Call records (no telephony integration) | Queued after escalations |
 | Final authenticated workflow, PostgreSQL/migrations, Docker, errors, documentation | Queued after call records |
 | LLM, RAG, AI agents, and real voice integrations | Later |
@@ -423,3 +423,22 @@ RESOLVED; RESOLVED → CLOSED. Repeating a status is idempotent. Resolution sets
 for escalation workflows. Closed/resolved conversations reject new messages.
 Agent replies on assigned conversations must come from the assigned agent.
 Migration `0005` adds the nullable agent foreign key. Verification: 97 tests pass.
+
+## Escalations
+
+POST `/api/v1/escalations` accepts `conversation_id`, a nonblank `reason`, optional
+`assigned_agent_id`, and priority LOW/MEDIUM/HIGH/URGENT (default MEDIUM). Managers
+or the conversation's assigned agent can escalate. Only managers choose an assignee.
+There can be one unresolved escalation per conversation; duplicates return 409.
+Creation atomically sets the conversation to ESCALATED and blocks its resolution.
+
+GET `/api/v1/escalations` filters by conversation, assignee, status, and priority,
+with offset/limit pagination. GET `/api/v1/escalations/{id}` retrieves one record.
+PATCH supports `priority`, `assigned_agent_id` (null unassigns the escalation), and
+`{"status":"RESOLVED"}`. Managers manage all fields; the escalation's assigned agent
+may resolve it. Assignment requires an active AVAILABLE agent and also updates the
+conversation assignment. Unassigning the escalation does not clear the conversation
+assignment. Resolution records `resolved_at` and returns the conversation to
+IN_PROGRESS if assigned, otherwise OPEN. Repeating resolution is idempotent;
+resolved escalations cannot otherwise be edited. Migration `0006` enforces the
+single-active-escalation rule. Focused escalation/conversation tests: 20 passed.

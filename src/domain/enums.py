@@ -38,3 +38,16 @@ class AgentStatus(StrEnum):
     AVAILABLE = "AVAILABLE"
     BUSY = "BUSY"
     OFFLINE = "OFFLINE"
+
+
+class EscalationPriority(StrEnum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    URGENT = "URGENT"
+
+
+class EscalationStatus(StrEnum):
+    OPEN = "OPEN"
+    ASSIGNED = "ASSIGNED"
+    RESOLVED = "RESOLVED"

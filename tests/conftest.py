@@ -1,3 +1,4 @@
+from src.models.escalation import Escalation  # noqa: F401
 """Shared API fixtures: real repositories and an isolated database per test."""
 
 import pytest

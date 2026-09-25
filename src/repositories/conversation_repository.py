@@ -28,7 +28,7 @@ class ConversationRepository:
 
     async def get_for_update(self, conversation_id: int) -> Conversation | None:
         return await self.session.scalar(
-            select(Conversation).where(Conversation.id == conversation_id).with_for_update()
+            select(Conversation).where(Conversation.id == conversation_id).with_for_update().execution_options(populate_existing=True)
         )
 
     async def list(self, *, offset: int, limit: int, status=None, customer_id=None, assigned_agent_id=None, channel=None) -> list[Conversation]:
