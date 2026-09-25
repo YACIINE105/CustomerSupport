@@ -9,6 +9,7 @@ from sqlalchemy.pool import NullPool
 from src.core.config import get_settings
 from src.core.database import Base
 from src.models.customer import Customer  # noqa: F401 — registers the table
+from src.models.conversation import Conversation
 
 
 target_metadata = Base.metadata
