@@ -13,6 +13,7 @@ class ConversationCreate(BaseModel):
 class ConversationResponse(BaseModel):
     id : int
     customer_id:int
+    assigned_agent_id: int | None
 
     channel: ConversationChannel
     status: ConversationStatus
@@ -23,3 +24,13 @@ class ConversationResponse(BaseModel):
     updated_at:datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ConversationUpdate(BaseModel):
+    status: ConversationStatus
+    model_config = ConfigDict(extra="forbid")
+
+
+class ConversationAssign(BaseModel):
+    agent_id: int = Field(gt=0)
+    model_config = ConfigDict(extra="forbid")

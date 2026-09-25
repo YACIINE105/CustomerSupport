@@ -393,7 +393,7 @@ Latest milestone verification:
 | Conversation creation/retrieval | Complete |
 | Customer/agent text messages and conversation history | Complete |
 | User authentication and human support-agent profiles | Complete |
-| Conversation listing, assignment, and lifecycle | Next |
+| Conversation listing, assignment, and lifecycle | Complete |
 | Escalations | Queued after conversation management |
 | Call records (no telephony integration) | Queued after escalations |
 | Final authenticated workflow, PostgreSQL/migrations, Docker, errors, documentation | Queued after call records |
@@ -406,3 +406,20 @@ project documentation.
 
 The next four stages are saved for a later session. No timed execution has been
 scheduled and no further implementation starts until requested.
+
+## Conversation management
+
+`GET /api/v1/conversations` supports `status`, `channel`, `customer_id`,
+`assigned_agent_id`, `offset`, and `limit`. Managers assign with
+`POST /api/v1/conversations/{id}/assign` and `{"agent_id": 1}`. The target must be
+active and AVAILABLE. Assignment moves OPEN to IN_PROGRESS; availability remains
+manual, allowing multiple simultaneous conversations.
+
+Managers or the assigned agent can PATCH a conversation with `{"status":"WAITING"}`
+or call POST `/resolve` and `/close`. Allowed transitions: OPEN → IN_PROGRESS,
+WAITING, or RESOLVED; IN_PROGRESS → WAITING or RESOLVED; WAITING → IN_PROGRESS or
+RESOLVED; RESOLVED → CLOSED. Repeating a status is idempotent. Resolution sets
+`ended_at`; closure preserves it. No reopening is supported. ESCALATED is reserved
+for escalation workflows. Closed/resolved conversations reject new messages.
+Agent replies on assigned conversations must come from the assigned agent.
+Migration `0005` adds the nullable agent foreign key. Verification: 97 tests pass.

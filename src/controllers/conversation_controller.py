@@ -15,3 +15,13 @@ class ConversationController:
 
     async def get(self, conversation_id:int)->Conversation:
         return await self.service.get_conversation(conversation_id=conversation_id)
+
+
+    async def list(self, **filters):
+        return await self.service.list_conversations(**filters)
+
+    async def assign(self, conversation_id, agent_id, actor):
+        return await self.service.assign(conversation_id, agent_id, actor)
+
+    async def transition(self, conversation_id, status, actor):
+        return await self.service.transition(conversation_id, status, actor)

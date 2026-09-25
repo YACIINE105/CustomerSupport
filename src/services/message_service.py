@@ -1,8 +1,8 @@
-from src.core.exceptions import ApplicationError, PermissionDeniedError, ResourceNotFoundError
+from src.core.exceptions import ApplicationError, ConflictError, PermissionDeniedError, ResourceNotFoundError
 from src.models.conversation import Conversation
 from src.models.message import Message
 from src.models.user import User
-from src.domain.enums import MessageSenderType, UserRole
+from src.domain.enums import MessageSenderType, UserRole, ConversationStatus
 from src.repositories.agent_repository import AgentRepository
 from src.repositories.conversation_repository import ConversationRepository
 from src.repositories.message_repository import MessageRepository
@@ -23,11 +23,15 @@ class MessageService:
 
     async def create_message(self, conversation_id: int, data: MessageCreate, actor: User | None = None) -> Message:
         conversation = await self._get_conversation(conversation_id)
+        if conversation.status in {ConversationStatus.RESOLVED, ConversationStatus.CLOSED}:
+            raise ConflictError("Cannot add messages to a resolved or closed conversation")
         if data.sender_type == MessageSenderType.AGENT:
             if actor is None or actor.role != UserRole.AGENT or self.agents is None:
                 raise PermissionDeniedError()
             agent = await self.agents.get_by_user(actor.id)
-            if agent is None or data.sender_id != agent.id:
+            if agent is None or data.sender_id != agent.id or (
+                conversation.assigned_agent_id is not None and conversation.assigned_agent_id != agent.id
+            ):
                 raise PermissionDeniedError()
         elif data.sender_id != conversation.customer_id:
             raise ApplicationError(

@@ -22,6 +22,8 @@ class Conversation(Base):
         index=True,
     )
 
+    assigned_agent_id: Mapped[int | None] = mapped_column(ForeignKey("agents.id"), nullable=True, index=True)
+
     customer: Mapped["Customer"] = relationship(
         back_populates="conversations",
     )
