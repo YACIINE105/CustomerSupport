@@ -8,6 +8,7 @@ modular monolith with PostgreSQL, async SQLAlchemy, Pydantic, and Alembic.
 - Customer creation, listing, retrieval, partial updates, and deletion.
 - Conversation creation for an existing customer and retrieval by ID.
 - CHAT, VOICE, and PHONE channels; new conversations start OPEN.
+- Customer text messages with JSON metadata and a paginated conversation timeline.
 - Input validation, missing-resource responses, and database constraints.
 - Versioned database migrations and automated service/API/persistence tests.
 
@@ -119,7 +120,35 @@ Expect HTTP 201 with status `OPEN`, a generated conversation ID, timestamps, and
 curl http://localhost:8000/api/v1/conversations/1
 ```
 
-### 3. List or update customers
+### 3. Send a message and read the timeline
+
+Use the customer ID and conversation ID returned by the previous requests:
+
+```bash
+curl -i -X POST http://localhost:8000/api/v1/conversations/1/messages \
+  -H 'Content-Type: application/json' \
+  -d '{"sender_id":1,"content":"Where is my order?","metadata":{"order_id":"A123"}}'
+curl 'http://localhost:8000/api/v1/conversations/1/messages?offset=0&limit=20'
+```
+
+Creation returns HTTP 201 with the stored message, its ID, and timestamp. Listing
+returns HTTP 200 with an array (empty for an existing conversation with no messages).
+Messages are ordered oldest first by `created_at`, then by `id` for equal timestamps.
+Use `offset >= 0` and `limit` from 1 to 100; the default page size is 100.
+
+For this stage, `sender_type` defaults to CUSTOMER and `message_type` to TEXT.
+Other sender/message types are rejected by this endpoint. `sender_id` must match
+the conversation's customer. Content is trimmed, must not be blank, and is limited
+to 10,000 characters. `metadata` is an optional JSON object, defaulting to `{}`.
+Unknown fields such as client-supplied timestamps are rejected.
+
+Sender matching is a consistency check, **not authentication**. Authentication,
+human-agent replies, trusted AI/system writers, and rules for messaging closed
+conversations belong to later stages. No audio upload or realtime delivery is
+implemented. Offset pagination does not provide a frozen snapshot during
+concurrent writes.
+
+### 4. List or update customers
 
 ```bash
 curl 'http://localhost:8000/api/v1/customers?offset=0&limit=20'
@@ -144,6 +173,8 @@ be null. Customer listing is ordered by ID and supports `offset >= 0` and a
 | DELETE | `/api/v1/customers/{customer_id}` | 204, empty body |
 | POST | `/api/v1/conversations` | 201 |
 | GET | `/api/v1/conversations/{conversation_id}` | 200 |
+| POST | `/api/v1/conversations/{conversation_id}/messages` | 201 |
+| GET | `/api/v1/conversations/{conversation_id}/messages` | 200 |
 
 Conversation creation requires a positive customer ID and channel CHAT, VOICE, or
 PHONE. Additional fields, including client-supplied status, are rejected.
@@ -188,7 +219,8 @@ uv run alembic -c alembic/alembic.ini check
 ```
 
 Current revisions: `0001` creates customers; `0002` creates conversations, their
-foreign key/index, and channel/status CHECK constraints.
+foreign key/index, and channel/status CHECK constraints. Revision `0003` creates
+messages with sender/type constraints and the composite timeline index.
 
 After changing models, ensure they are imported by `alembic/env.py`, then generate
 and review a new migration:
@@ -207,6 +239,7 @@ SQL. Test destructive downgrades only on a disposable database.
 uv run python -m pytest -q
 uv run python -m pytest tests/test_conversation_service.py -v
 uv run python -m pytest tests/test_conversation_api.py -v
+uv run python -m pytest tests/test_message_service.py tests/test_message_api.py -v
 ```
 
 Service tests mock repositories. API/persistence tests use a fresh SQLite database
@@ -215,11 +248,14 @@ not needed for this suite; these tests do not validate Alembic migration executi
 
 Latest milestone verification:
 
-- 29 tests passed, including history preservation and allowed-state constraints.
+- 55 tests passed, including message workflow, metadata, stable ordering,
+  pagination, sender checks, history preservation, and allowed-state constraints.
 - PostgreSQL 18 database container started successfully.
-- Migrations applied through `0002`; Alembic reported no schema differences.
+- Migrations applied through `0003`; Alembic reported no schema differences.
 - An HTTP smoke check against PostgreSQL verified all channels, UTC timestamps,
-  retrieval, invalid input, and missing resources. Smoke-test rows were rolled back.
+  retrieval, invalid input, and missing resources. The Messages smoke check verified
+  metadata, UTC timestamps, ordered retrieval, and pagination. Smoke-test rows
+  were rolled back.
 - A pre-existing Starlette TestClient/httpx deprecation warning remains.
 
 ## Development stages
@@ -228,8 +264,8 @@ Latest milestone verification:
 | --- | --- |
 | Core backend and Customer CRUD | Complete |
 | Conversation creation/retrieval | Complete |
-| Messages and conversation history | Next |
-| User authentication and human support-agent profiles | Planned |
+| Customer text messages and conversation history | Complete |
+| User authentication and human support-agent profiles | Next |
 | Conversation listing, assignment, and lifecycle | Planned |
 | Escalations and call records | Planned |
 | Full authenticated workflow and container verification | Planned |

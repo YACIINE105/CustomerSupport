@@ -5,6 +5,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from src.models.message import Message  # noqa: F401 - register metadata
 from src.core.database import Base, get_db_session
 from src.models.conversation import Conversation  # noqa: F401 - register metadata
 from src.models.customer import Customer  # noqa: F401 - register metadata
